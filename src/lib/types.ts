@@ -4,6 +4,8 @@ export type Cta = {
   label?: string;
   href?: string;
   style?: "primary" | "secondary";
+  utmCampaign?: string;
+  utmContent?: string;
 };
 
 export type SanityImage = {
@@ -13,6 +15,39 @@ export type SanityImage = {
     url?: string;
   };
   alt?: string;
+};
+
+export type FormConfig = {
+  provider?: "native" | "hubspot";
+  title?: string;
+  description?: string;
+  hubspotPortalId?: string;
+  hubspotFormId?: string;
+  region?: string;
+  thankYouPath?: string;
+  campaignName?: string;
+  fields?: Array<{
+    _key: string;
+    label?: string;
+    name?: string;
+    type?: "text" | "email" | "tel" | "textarea";
+    required?: boolean;
+  }>;
+};
+
+export type DownloadConfig = {
+  title?: string;
+  description?: string;
+  type?: string;
+  gated?: boolean;
+  thumbnail?: SanityImage;
+  hubspotForm?: FormConfig;
+  file?: {
+    asset?: {
+      url?: string;
+      originalFilename?: string;
+    };
+  };
 };
 
 export type Section = {
@@ -31,33 +66,19 @@ export type Section = {
     title?: string;
     text?: string;
     value?: string;
+    question?: string;
+    answer?: string;
+    quote?: string;
+    person?: string;
+    role?: string;
+    company?: string;
     image?: SanityImage;
     href?: string;
   }>;
-  form?: {
-    provider?: "native" | "hubspot";
-    title?: string;
-    description?: string;
-    hubspotPortalId?: string;
-    hubspotFormId?: string;
-    fields?: Array<{
-      _key: string;
-      label?: string;
-      name?: string;
-      type?: "text" | "email" | "tel" | "textarea";
-      required?: boolean;
-    }>;
-  };
-  download?: {
-    title?: string;
-    description?: string;
-    file?: {
-      asset?: {
-        url?: string;
-        originalFilename?: string;
-      };
-    };
-  };
+  form?: FormConfig;
+  formRef?: FormConfig;
+  resource?: DownloadConfig;
+  download?: DownloadConfig;
 };
 
 export type Seo = {
@@ -65,10 +86,13 @@ export type Seo = {
   metaDescription?: string;
   keywords?: string[];
   canonicalUrl?: string;
+  noIndex?: boolean;
+  excludeFromSitemap?: boolean;
   ogTitle?: string;
   ogDescription?: string;
   ogImage?: SanityImage;
   ogUrl?: string;
+  schemaPreset?: string;
   schemaJson?: string;
 };
 
@@ -86,4 +110,9 @@ export type SiteSettings = {
   navigation?: Array<{ _key: string; label?: string; href?: string }>;
   footerLinks?: Array<{ _key: string; label?: string; href?: string }>;
   gtmId?: string;
+  announcement?: {
+    enabled?: boolean;
+    message?: string;
+    link?: Cta;
+  };
 };

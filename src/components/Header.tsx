@@ -11,9 +11,22 @@ const defaultNav = [
 
 export function Header({ settings }: { settings?: SiteSettings | null }) {
   const nav = settings?.navigation?.length ? settings.navigation : defaultNav;
+  const announcement = settings?.announcement;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[rgba(247,244,239,0.92)] backdrop-blur">
+      {announcement?.enabled && announcement.message ? (
+        <div className="bg-[var(--ink)] py-2 text-center text-sm font-semibold text-white">
+          {announcement.link?.href ? (
+            <Link href={announcement.link.href}>
+              {announcement.message}
+              {announcement.link.label ? ` ${announcement.link.label}` : ""}
+            </Link>
+          ) : (
+            announcement.message
+          )}
+        </div>
+      ) : null}
       <div className="container flex h-20 items-center justify-between gap-8">
         <Link href="/" className="text-lg font-black tracking-tight">
           {settings?.title || "Rolling Arrays Technologies"}

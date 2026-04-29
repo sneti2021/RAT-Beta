@@ -45,6 +45,7 @@ function metadataFromSeo(seo?: Seo, fallbackTitle?: string): Metadata {
     title,
     description,
     keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: false } : undefined,
     alternates: seo?.canonicalUrl ? { canonical: seo.canonicalUrl } : undefined,
     openGraph: {
       title: seo?.ogTitle || title,

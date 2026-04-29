@@ -9,6 +9,56 @@ const imageFields = groq`
   alt
 `;
 
+const ctaFields = groq`
+  _type == "reference" => @->{
+    label,
+    href,
+    style,
+    utmCampaign,
+    utmContent
+  },
+  _type != "reference" => {
+    label,
+    href,
+    style
+  }
+`;
+
+const formFields = groq`
+  form,
+  formRef->{
+    "provider": "hubspot",
+    "title": title,
+    "hubspotPortalId": portalId,
+    "hubspotFormId": formId,
+    region,
+    thankYouPath,
+    campaignName
+  }
+`;
+
+const resourceFields = groq`
+  resource->{
+    title,
+    description,
+    type,
+    gated,
+    file {
+      asset->{
+        url,
+        originalFilename
+      }
+    },
+    thumbnail { ${imageFields} },
+    hubspotForm->{
+      "provider": "hubspot",
+      "title": title,
+      "hubspotPortalId": portalId,
+      "hubspotFormId": formId
+    }
+  }
+`;
+
 export const pageBySlugQuery = groq`
   *[_type == "page" && slug.current == $slug && status == "published"][0]{
     _id,
@@ -20,10 +70,13 @@ export const pageBySlugQuery = groq`
       metaDescription,
       keywords,
       canonicalUrl,
+      noIndex,
+      excludeFromSitemap,
       ogTitle,
       ogDescription,
       ogUrl,
       schemaJson,
+      schemaPreset,
       ogImage { ${imageFields} }
     },
     sections[]{
@@ -33,6 +86,11 @@ export const pageBySlugQuery = groq`
         ...,
         image { ${imageFields} }
       },
+      ctas[]{
+        ${ctaFields}
+      },
+      ${formFields},
+      ${resourceFields},
       download {
         title,
         description,
@@ -59,11 +117,25 @@ export const postBySlugQuery = groq`
       metaDescription,
       keywords,
       canonicalUrl,
+      noIndex,
+      excludeFromSitemap,
       ogTitle,
       ogDescription,
       ogUrl,
       schemaJson,
+      schemaPreset,
       ogImage { ${imageFields} }
+    },
+    author->{name, role, bio, photo { ${imageFields} }},
+    categoryRef->{title, "slug": slug.current},
+    tags[]->{title, "slug": slug.current},
+    relatedPosts[]->{
+      _type,
+      title,
+      "slug": slug.current,
+      description,
+      excerpt,
+      type
     },
     "sections": [
       {
@@ -94,13 +166,18 @@ export const siteSettingsQuery = groq`
   *[_type == "siteSettings"][0]{
     title,
     gtmId,
+    announcement {
+      enabled,
+      message,
+      link { label, href, style }
+    },
     navigation[]{ _key, label, href },
     footerLinks[]{ _key, label, href }
   }
 `;
 
 export const publishedPathsQuery = groq`
-  *[_type in ["page", "post"] && defined(slug.current) && status == "published"]{
+  *[_type in ["page", "post"] && defined(slug.current) && status == "published" && seo.excludeFromSitemap != true]{
     "slug": slug.current,
     _updatedAt
   }

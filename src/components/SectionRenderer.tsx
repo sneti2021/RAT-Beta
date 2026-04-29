@@ -13,15 +13,33 @@ function Buttons({ ctas }: { ctas?: Section["ctas"] }) {
 
   return (
     <div className="mt-8 flex flex-wrap gap-3">
-      {ctas.map((cta) => (
-        <Link
-          key={`${cta.label}-${cta.href}`}
-          className={`btn ${cta.style === "secondary" ? "btn-secondary" : "btn-primary"}`}
-          href={cta.href || "#"}
-        >
-          {cta.label}
-        </Link>
-      ))}
+      {ctas.map((cta) => {
+        const rawHref = cta.href || "#";
+        const href = new URL(rawHref, "https://rollingarrays.tech");
+        if (cta.utmCampaign) {
+          href.searchParams.set("utm_campaign", cta.utmCampaign);
+        }
+        if (cta.utmContent) {
+          href.searchParams.set("utm_content", cta.utmContent);
+        }
+        const isExternal = /^https?:\/\//.test(rawHref);
+        const finalHref =
+          href.pathname === "/" && href.hash === "#"
+            ? "#"
+            : isExternal
+              ? href.toString()
+              : `${href.pathname}${href.search}${href.hash}`;
+
+        return (
+          <Link
+            key={`${cta.label}-${cta.href}`}
+            className={`btn ${cta.style === "secondary" ? "btn-secondary" : "btn-primary"}`}
+            href={finalHref}
+          >
+            {cta.label}
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -171,7 +189,8 @@ function LogoCloud({ section }: { section: Section }) {
 }
 
 function DownloadSection({ section }: { section: Section }) {
-  const fileUrl = section.download?.file?.asset?.url;
+  const download = section.resource || section.download;
+  const fileUrl = download?.file?.asset?.url;
 
   return (
     <section className="section bg-white">
@@ -180,10 +199,10 @@ function DownloadSection({ section }: { section: Section }) {
           <div>
             <p className="eyebrow">{section.eyebrow || "Download"}</p>
             <h2 className="mt-3 text-3xl font-black">
-              {section.title || section.download?.title}
+              {section.title || download?.title}
             </h2>
             <p className="mt-3 max-w-2xl text-[var(--muted)]">
-              {section.subtitle || section.download?.description}
+              {section.subtitle || download?.description}
             </p>
           </div>
           <a className="btn btn-primary mt-6 gap-2 md:mt-0" href={fileUrl || "#"}>
@@ -197,6 +216,8 @@ function DownloadSection({ section }: { section: Section }) {
 }
 
 function FormSection({ section }: { section: Section }) {
+  const form = section.formRef || section.form;
+
   return (
     <section className="section">
       <div className="container grid gap-10 md:grid-cols-[0.85fr_1.15fr]">
@@ -205,15 +226,15 @@ function FormSection({ section }: { section: Section }) {
           {section.title ? <h2 className="mt-3 text-4xl font-black">{section.title}</h2> : null}
           {section.subtitle ? <p className="mt-4 text-lg leading-8 text-[var(--muted)]">{section.subtitle}</p> : null}
         </div>
-        {section.form?.provider === "hubspot" ? (
+        {form?.provider === "hubspot" ? (
           <div className="rounded-lg bg-white p-6 shadow-sm">
             <HubSpotForm
-              portalId={section.form.hubspotPortalId}
-              formId={section.form.hubspotFormId}
+              portalId={form.hubspotPortalId}
+              formId={form.hubspotFormId}
             />
           </div>
         ) : (
-          <NativeForm form={section.form} />
+          <NativeForm form={form} />
         )}
       </div>
     </section>
@@ -228,6 +249,49 @@ function CTA({ section }: { section: Section }) {
         <h2 className="mt-3 text-4xl font-black md:text-5xl">{section.title}</h2>
         {section.subtitle ? <p className="mt-4 text-lg text-white/78">{section.subtitle}</p> : null}
         <Buttons ctas={section.ctas} />
+      </div>
+    </section>
+  );
+}
+
+function FAQ({ section }: { section: Section }) {
+  return (
+    <section className="section bg-white">
+      <div className="container max-w-4xl">
+        <SectionIntro section={section} />
+        <div className="divide-y divide-[var(--line)] rounded-lg border border-[var(--line)]">
+          {section.items?.map((item) => (
+            <details key={item._key} className="group p-6">
+              <summary className="cursor-pointer list-none text-lg font-black">
+                {item.question}
+              </summary>
+              <p className="mt-3 leading-7 text-[var(--muted)]">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials({ section }: { section: Section }) {
+  return (
+    <section className="section">
+      <div className="container">
+        <SectionIntro section={section} />
+        <div className="grid gap-5 md:grid-cols-3">
+          {section.items?.map((item) => (
+            <figure key={item._key} className="rounded-lg bg-white p-6 shadow-sm">
+              <blockquote className="text-lg font-semibold leading-8">
+                “{item.quote}”
+              </blockquote>
+              <figcaption className="mt-6 text-sm text-[var(--muted)]">
+                <strong className="block text-[var(--foreground)]">{item.person}</strong>
+                {[item.role, item.company].filter(Boolean).join(", ")}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -258,6 +322,10 @@ export function SectionRenderer({ sections }: { sections?: Section[] }) {
             return <FormSection key={section._key} section={section} />;
           case "ctaSection":
             return <CTA key={section._key} section={section} />;
+          case "faqSection":
+            return <FAQ key={section._key} section={section} />;
+          case "testimonialSection":
+            return <Testimonials key={section._key} section={section} />;
           default:
             return null;
         }
