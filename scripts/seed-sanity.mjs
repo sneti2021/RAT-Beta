@@ -22,8 +22,9 @@ const client = createClient({
 });
 
 const block = (text) => ({
+  _key: randomUUID(),
   _type: "block",
-  children: [{ _type: "span", text }],
+  children: [{ _key: randomUUID(), _type: "span", text }],
 });
 
 const cta = (label, href, style = "primary") => ({
