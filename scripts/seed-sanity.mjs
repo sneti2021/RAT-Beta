@@ -1,5 +1,8 @@
 import { createClient } from "@sanity/client";
+import dotenv from "dotenv";
 import { randomUUID } from "node:crypto";
+
+dotenv.config({ path: ".env.local" });
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "l84dbt13";
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
